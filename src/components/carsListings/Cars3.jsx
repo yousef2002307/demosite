@@ -15,8 +15,7 @@ export default function Cars3() {
   const [activeIndex, setActiveIndex] = useState(0); // Default active is the first item
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user } = useAuth(); // Get the user from your auth context
-  const [userId, setUserId] = useState(null);
+ 
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const {
@@ -79,19 +78,13 @@ console.log("get state",state.cars)
 
 
   useEffect(() => {
-    if (localStorage.getItem("user")
-     ) {
-      setUserId(JSON.parse(localStorage.getItem("user")).id);
-    } else {
-      setUserId(null);
-    }
-    console.log("userrr ", userId,JSON.parse(localStorage.getItem("user")).id)
+    
     
     const fetchCars = async () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `https://develop.sayarti.nl/api/v1/en/cars?page=${state.currentPage}&vendor_id=${userId}`
+          `https://develop.sayarti.nl/api/v1/en/cars?page=${state.currentPage}`
         );
         dispatch({ type: "SET_CARS", payload: response.data });
       } catch (err) {
@@ -106,7 +99,7 @@ console.log("get state",state.cars)
     }, 300); // Add small debounce
     
     return () => clearTimeout(timer)
-  }, [state.currentPage,userId]);
+  }, [state.currentPage]);
   useEffect(() => {
    
     if (!state.cars.length) return;
@@ -237,7 +230,7 @@ useEffect(() => {
     // dispatch({ type: "SET_CURRENT_PAGE", payload: 1 });
   }, [filtered, sortingOption]);
   const [isGrid, setIsGrid] = useState(true);
-  console.log(userId,"useee")
+  // console.log(userId,"useee")
   return (
     <>
       <section className="listing-grid tf-section3">
