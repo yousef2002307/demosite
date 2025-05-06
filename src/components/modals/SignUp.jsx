@@ -3,6 +3,7 @@ import { LangContext } from "@/utlis/langContext";
 import axios from "axios";
 import React, { useContext, useEffect, useState } from "react";
 import { Tab, Nav } from 'react-bootstrap';
+import { useNavigate } from "react-router-dom";
 
 export default function SignUp() {
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
@@ -54,16 +55,37 @@ export default function SignUp() {
     setUser(userInfo);
   }
 
+  let navigator = useNavigate();
+
+  // Update getResponse to accept endpoint parameter
+  async function getResponse(endpoint) {
+    let response = await axios
+      .post(`${baseUrl}/${endpoint}`, user)
+      .catch((error) => {
+        console.log(error.response.data);
+        setErrorMsg(error.response.data.message.split("(")[0]);
+        setLoginMsg("");
+      });
+
+    console.log(response);
+    console.log("response is loaded");
+    localStorage.setItem("token", response.data.token);
+    getUserData(response.data.user);
+    setLocalUser(response.data.user);
+    setLoginMsg(response.data.message);
+    setErrorMsg("");
+  }
+
   function renderForm(type) {
     return (
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (type === "customer") {
-            getResponse("login");
-          } else if (type === "vendor") {
-            getResponse("vendor/login");
-          }
+          let endpoint = "register";
+          if (type === "vendor") endpoint = "vendor/register";
+          if (type === "parkinglot") endpoint = "vendor/register/test";
+          getResponse(endpoint);
+          localStorage.setItem("userType", type);
           navigator("/home");
         }}
         className="comment-form form-submit"
@@ -255,14 +277,8 @@ export default function SignUp() {
   }
 
   return (
-    <div
-      className="modal fade popup login-form p-3"
-      id="popup_bid2"
-      tabIndex={-1}
-      role="dialog"
-      aria-hidden="true"
-    >
-      <div className="modal-dialog modal-dialog-centered" role="document">
+    <div className="modal fade popup login-form p-3" id="popup_bid2" tabIndex={-1}>
+      <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <button
             type="button"
@@ -288,26 +304,28 @@ export default function SignUp() {
                     <div className="content p-4">
                       <h1 className="title-login mb-3">{lang["Signup"]}</h1>
                       <Tab.Container defaultActiveKey="customer">
-                        <Nav variant="tabs" className="mb-2" > 
-                          <Nav.Item style={{ width: "50%", textAlign: "center" }}>
-                            <Nav.Link eventKey="customer" style={{ color: "#FF7101",fontWeight: "bold" }}>
+                        <Nav variant="tabs" className="mb-2">
+                          <Nav.Item style={{ width: "33.33%", textAlign: "center" }}>
+                            <Nav.Link eventKey="customer" style={{ color: "#FF7101", fontWeight: "bold" }}>
                               {lang["Customer"]}
                             </Nav.Link>
                           </Nav.Item>
-                          <Nav.Item style={{ width: "50%", textAlign: "center" }}>
-                            <Nav.Link eventKey="vendor" style={{ color: "#FF7101",fontWeight: "bold" }}>
+                          <Nav.Item style={{ width: "33.33%", textAlign: "center" }}>
+                            <Nav.Link eventKey="vendor" style={{ color: "#FF7101", fontWeight: "bold" }}>
                               {lang["Vendor"]}
+                            </Nav.Link>
+                          </Nav.Item>
+                          <Nav.Item style={{ width: "33.33%", textAlign: "center" }}>
+                            <Nav.Link eventKey="parkinglot" style={{ color: "#FF7101", fontWeight: "bold" }}>
+                              Parking Lot
                             </Nav.Link>
                           </Nav.Item>
                         </Nav>
 
                         <Tab.Content>
-                          <Tab.Pane eventKey="customer">
-                            {renderForm("customer")}
-                          </Tab.Pane>
-                          <Tab.Pane eventKey="vendor">
-                            {renderForm("vendor")}
-                          </Tab.Pane>
+                          <Tab.Pane eventKey="customer">{renderForm("customer")}</Tab.Pane>
+                          <Tab.Pane eventKey="vendor">{renderForm("vendor")}</Tab.Pane>
+                          <Tab.Pane eventKey="parkinglot">{renderForm("parkinglot")}</Tab.Pane>
                         </Tab.Content>
                       </Tab.Container>
                     </div>

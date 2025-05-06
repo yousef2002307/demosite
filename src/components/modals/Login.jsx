@@ -19,6 +19,15 @@ export default function Login() {
     password: "",
   });
 
+  // Add this function to handle input changes
+  function getUserInfo(e) {
+    const { name, value } = e.target;
+    setUser(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  }
+
   let navigator = useNavigate();
 
   function getUserData(user) {
@@ -50,33 +59,15 @@ export default function Login() {
     );
   }
 
-  function submitRegister(e) {
-    e.preventDefault();
-    if (user.type === "customer") {
-      getResponse("login");
-    } else {
-      getResponse("vendor/login");
-    }
-    navigator("/home");
-  }
-
-  function getUserInfo(e) {
-    let userInfo = { ...user };
-    userInfo[e.target.name] = e.target.value;
-    setUser(userInfo);
-  }
-
   function renderForm(type) {
-
     return (
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          if (type === "customer") {
-            getResponse("login");
-          } else if (type === "vendor") {
-            getResponse("vendor/login");
-          }
+          let endpoint = "login";
+          if (type === "vendor") endpoint = "vendor/login";
+          if (type === "parkinglot") endpoint = "vendor/login/test";
+          getResponse(endpoint);
           localStorage.setItem("userType", type);
           navigator("/home");
         }}
@@ -91,6 +82,7 @@ export default function Login() {
             className="tb-my-input"
             placeholder={lang["Email"]}
             onChange={getUserInfo}
+            key={`${type}-email-input`}
           />
         </fieldset>
 
@@ -102,13 +94,14 @@ export default function Login() {
             className="input-form password-input"
             placeholder={lang["Password"]}
             onChange={getUserInfo}
+            key={`${type}-password-input`}
           />
         </fieldset>
 
-        {loginMsg && <p className="text-success m-3">{loginMsg}</p>}
-        {ErrorMsg && <p className="text-danger m-3">{ErrorMsg}</p>}
+        {loginMsg && <p className="text-success m-3" key={`${type}-success-msg`}>{loginMsg}</p>}
+        {ErrorMsg && <p className="text-danger m-3" key={`${type}-error-msg`}>{ErrorMsg}</p>}
 
-        <button className="sc-button" type="submit">
+        <button className="sc-button" type="submit" key={`${type}-submit-btn`}>
           <span>{lang["Login"]}</span>
         </button>
       </form>
@@ -116,13 +109,8 @@ export default function Login() {
   }
 
   return (
-    <div
-      className="modal fade popup login-form"
-      id="popup_bid"
-      tabIndex={-1}
-      aria-hidden="true"
-    >
-      <div className="modal-dialog modal-dialog-centered" role="document">
+    <div className="modal fade popup login-form" id="popup_bid" tabIndex={-1}>
+      <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content">
           <button
             type="button"
@@ -149,35 +137,27 @@ export default function Login() {
                       <h1 className="title-login">{lang["Login"]}</h1>
                       <Tab.Container defaultActiveKey="customer">
                         <Nav variant="tabs" className="mb-4">
-                          <Nav.Item
-                            style={{ width: "50%", textAlign: "center" }}
-                          >
-                            <Nav.Link
-                              eventKey="customer"
-                              style={{ color: "#FF7101", fontWeight: "bold" }}
-                            >
+                          <Nav.Item style={{ width: "33%", textAlign: "center" }}>
+                            <Nav.Link eventKey="customer" style={{ color: "#FF7101", fontWeight: "bold" }}>
                               {lang["Customer"]}
                             </Nav.Link>
                           </Nav.Item>
-                          <Nav.Item
-                            style={{ width: "50%", textAlign: "center" }}
-                          >
-                            <Nav.Link
-                              eventKey="vendor"
-                              style={{ color: "#FF7101", fontWeight: "bold" }}
-                            >
+                          <Nav.Item style={{ width: "33%", textAlign: "center" }}>
+                            <Nav.Link eventKey="vendor" style={{ color: "#FF7101", fontWeight: "bold" }}>
                               {lang["Vendor"]}
+                            </Nav.Link>
+                          </Nav.Item>
+                          <Nav.Item style={{ width: "33%", textAlign: "center" }}>
+                            <Nav.Link eventKey="parkinglot" style={{ color: "#FF7101", fontWeight: "bold" }}>
+                              Parking Lot
                             </Nav.Link>
                           </Nav.Item>
                         </Nav>
 
                         <Tab.Content>
-                          <Tab.Pane eventKey="customer">
-                            {renderForm("customer")}
-                          </Tab.Pane>
-                          <Tab.Pane eventKey="vendor">
-                            {renderForm("vendor")}
-                          </Tab.Pane>
+                          <Tab.Pane eventKey="customer">{renderForm("customer")}</Tab.Pane>
+                          <Tab.Pane eventKey="vendor">{renderForm("vendor")}</Tab.Pane>
+                          <Tab.Pane eventKey="parkinglot">{renderForm("parkinglot")}</Tab.Pane>
                         </Tab.Content>
                       </Tab.Container>
                     </div>

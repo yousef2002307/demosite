@@ -3,7 +3,7 @@ import { Autoplay, EffectFade, Navigation, Pagination } from "swiper/modules";
 import { Swiper, SwiperSlide } from "swiper/react";
 import PhotoSwipeLightbox from "photoswipe/lightbox";
 
-export default function Slider1() {
+export default function Slider1({ images = [] }) { // Destructure props properly
   const swiperOptions = {
     autoplay: {
       delay: 6000,
@@ -20,10 +20,9 @@ export default function Slider1() {
       prevEl: ".snbp1",
     },
   };
-  const images = [
-    "/assets/images/section/slider-listing1.jpg",
-    "/assets/images/section/slider-listing1.jpg",
-  ];
+  // Process images without mutating original array
+  const processedImages = images.map(img => img.image);
+
   useEffect(() => {
     const lightbox = new PhotoSwipeLightbox({
       gallery: "#my-gallery",
@@ -43,7 +42,7 @@ export default function Slider1() {
       className="swiper mainslider slider home mb-40"
       id="my-gallery"
     >
-      {images.map((elm, i) => (
+      {processedImages.map((elm, i) => (
         <SwiperSlide key={i} className="swiper-slide">
           <div className="image-list-details">
             <a
@@ -52,6 +51,7 @@ export default function Slider1() {
               data-pswp-height="701"
               target="_blank"
               className="image"
+              rel="noreferrer"
             >
               <img
                 className="lazyload"
@@ -62,7 +62,8 @@ export default function Slider1() {
               />
             </a>
             <div className="specs-features-wrap flex-three">
-              <a className="specs-features">
+              {/* Change nested <a> to <div> */}
+              <div className="specs-features">
                 <div className="icon">
                   <svg
                     width={18}
@@ -81,13 +82,9 @@ export default function Slider1() {
                   </svg>
                 </div>
                 <span className="fw-5 font text-color-2 lh-16">Video</span>
-              </a>
-              <a
-                className="specs-features image"
-                href={elm}
-                data-pswp-width="1245"
-                data-pswp-height="701"
-              >
+              </div>
+              {/* Change nested <a> to <div> */}
+              <div className="specs-features image">
                 <div className="icon">
                   <svg
                     width={18}
@@ -106,7 +103,7 @@ export default function Slider1() {
                   </svg>
                 </div>
                 <span className="fw-5 font text-color-2 lh-16">All image</span>
-              </a>
+              </div>
             </div>
           </div>
         </SwiperSlide>

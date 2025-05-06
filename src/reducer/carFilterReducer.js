@@ -1,6 +1,9 @@
-import { allCars } from "@/data/cars";
-
 export const initialState = {
+  loading: true,
+  error: null,
+  cars: [],
+  totalItems: 0,
+  lastPage: 1,
   price: [50000, 100000],
   km: [50000, 100000],
   year: [2017, 2024],
@@ -15,15 +18,29 @@ export const initialState = {
   color: "Any Color",
 
   features: [],
-  filtered: allCars,
+  filtered: [],
   sortingOption: "Sort by (Default)",
-  sorted: allCars,
+  sorted: [],
   currentPage: 1,
-  itemPerPage: 6,
+  itemPerPage: 12,
 };
 
 export function reducer(state, action) {
   switch (action.type) {
+    case "SET_CARS":
+      return {
+        ...state,
+        cars: action.payload.data || [],
+        filtered: action.payload.data || [],
+        sorted: action.payload.data || [],
+        totalItems: action.payload.meta.total || 0,
+        lastPage: action.payload.meta.last_page || 1,
+        loading: false
+      };
+    case "SET_LOADING":
+      return { ...state, loading: action.payload };
+    case "SET_ERROR":
+      return { ...state, error: action.payload, loading: false };
     case "SET_PRICE":
       return { ...state, price: action.payload };
     case "SET_YEAR":

@@ -61,25 +61,19 @@ export default function DropdownSelect({
           {selectedValue || selected || defaultOption || options[0]}
         </span>
         <ul className="list" ref={optionsRef}>
-          {options.map((elm, i) => (
+          {options.map((option) => (
             <li
-              key={i}
+              key={option.value || option}
               onClick={() => {
-                setSelected(elm);
-                onChange(elm);
+                setSelected(option.value || option);
+                onChange(option.value || option);
                 toggleDropdown();
               }}
               className={`option ${
-                !selectedValue
-                  ? selected == elm
-                    ? "selected"
-                    : ""
-                  : selectedValue == elm
-                  ? "selected"
-                  : ""
-              }  text text-1`}
+                selectedValue === (option.value || option) ? 'selected' : ''
+              } text text-1`}
             >
-              {elm}
+              {option.label || option}
             </li>
           ))}
         </ul>

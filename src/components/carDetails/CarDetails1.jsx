@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Slider1 from "./sliders/Slider1";
 
 import Description from "./detailComponents/Description";
@@ -13,6 +13,9 @@ import Features from "./detailComponents/Features";
 import SidebarToggleButton from "./SidebarToggleButton";
 import LoanCalculator from "../homes/home-9/LoanCalculator";
 export default function CarDetails1({ carItem }) {
+  useEffect(() => {
+    console.log(carItem);
+  });
   return (
     <>
       <section className="tf-section3 listing-detail style-1">
@@ -20,7 +23,7 @@ export default function CarDetails1({ carItem }) {
           <div className="row">
             <div className="col-lg-8">
               <div className="listing-detail-wrap">
-                <Slider1 />
+                <Slider1 images = {carItem.galleries} />
                 <div className="row">
                   <div className="col-lg-12">
                     <nav

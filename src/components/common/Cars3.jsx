@@ -4,6 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/utlis/AuthContext";
 const priceRanges = [
   { title: "Auto Decar used cars", isActive: true, range: null },
   {
@@ -23,6 +24,9 @@ const priceRanges = [
   },
 ];
 export default function Cars3() {
+  const { user } = useAuth(); // Get the user from your auth context
+  const [userId, setUserId] = useState(null);
+
   const swiperOptions = {
     speed: 1000,
     spaceBetween: 30,
@@ -50,6 +54,7 @@ export default function Cars3() {
   };
   const [filtered, setFiltered] = useState(carData);
   const [selectedRange, setSelectedRange] = useState(priceRanges[0]);
+ 
 
   useEffect(() => {
     if (selectedRange.range) {
@@ -112,7 +117,7 @@ export default function Cars3() {
                     modules={[Pagination, Navigation]}
                     className="swiper-container tf-sw-mobile3"
                   >
-                    {filtered.map((car, i) => (
+                    {state.cars.map((car, i) => (
                       <SwiperSlide key={i} className="swiper-slide">
                         <div className="box-car-list hv-one">
                           <div className="image-group relative">

@@ -159,8 +159,9 @@ function App() {
               <Route
                 path="maintenance-booking"
                 element={
-               
+                  <RouteProtector>
                 <MaintenanceBookingPage />
+                  </RouteProtector>
                
                 }
               />

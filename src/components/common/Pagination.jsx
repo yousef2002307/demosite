@@ -6,13 +6,18 @@ export default function Pagination({
   setPage = (num) => {},
   currentPage,
 }) {
-  const totalPages = Math.ceil(itemLength / itemPerPage); // Adjust as needed
+  const totalPages = Math.ceil(itemLength / itemPerPage);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handlePageClick = (page) => {
-    if (page != 0 && page <= totalPages) {
-      setPage(page);
+  const handlePageClick = async (page) => {
+    if (page === currentPage || page < 1 || page > totalPages || isLoading) return;
+    
+    setIsLoading(true);
+    try {
+      await setPage(page);
+    } finally {
+      setIsLoading(false);
     }
-    // Add navigation logic here, e.g., using a router or window.location
   };
 
   return (
@@ -62,3 +67,4 @@ export default function Pagination({
     </>
   );
 }
+

@@ -3,15 +3,20 @@ import React, { useEffect, useReducer, useState } from "react";
 import { Link } from "react-router-dom";
 const categories = ["All car", "New car", "Used car"];
 import { initialState, reducer } from "@/reducer/carFilterReducer";
-import { allCars } from "@/data/cars";
+import axios from "axios";
 import DropdownSelect from "../common/DropDownSelect";
 import Pagination from "../common/Pagination";
 import Pricing from "../common/Pricing";
 import { featureOptions } from "@/data/filterOptions";
 import ListGridToggler from "./ListGridToggler";
 import FilterSidebar from "./FilterSidebar";
+import { useAuth } from "@/utlis/AuthContext"; 
 export default function Cars3() {
   const [activeIndex, setActiveIndex] = useState(0); // Default active is the first item
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useAuth(); // Get the user from your auth context
+  const [userId, setUserId] = useState(null);
 
   const [state, dispatch] = useReducer(reducer, initialState);
   const {
@@ -35,7 +40,7 @@ export default function Cars3() {
     currentPage,
     itemPerPage,
   } = state;
-
+console.log("get state",state.cars)
   const allProps = {
     ...state,
     setPrice: (value) => dispatch({ type: "SET_PRICE", payload: value }),
@@ -72,82 +77,110 @@ export default function Cars3() {
     dispatch({ type: "CLEAR_FILTER" });
   };
 
+
   useEffect(() => {
-    allProps.setItemPerPage(12);
-  }, []);
+    if (localStorage.getItem("user")
+     ) {
+      setUserId(JSON.parse(localStorage.getItem("user")).id);
+    } else {
+      setUserId(null);
+    }
+    console.log("userrr ", userId,JSON.parse(localStorage.getItem("user")).id)
+    
+    const fetchCars = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(
+          `https://develop.sayarti.nl/api/v1/en/cars?page=${state.currentPage}&vendor_id=${userId}`
+        );
+        dispatch({ type: "SET_CARS", payload: response.data });
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    const timer = setTimeout(() => {
+      fetchCars();
+    }, 300); // Add small debounce
+    
+    return () => clearTimeout(timer)
+  }, [state.currentPage,userId]);
   useEffect(() => {
+   
+    if (!state.cars.length) return;
+
     let filteredArrays = [];
 
     if (features.length) {
-      const filteredByFeatures = [...allCars].filter((elm) =>
-        features.every((el) => elm.features.includes(el))
+      const filteredByFeatures = [...state.cars].filter((elm) =>
+        features.every((el) => elm.features?.includes(el))
       );
       filteredArrays = [...filteredArrays, filteredByFeatures];
     }
     if (body !== "Any Body") {
-      const filteredBybody = [...allCars].filter((elm) => body === elm.body);
+      const filteredBybody = state.cars.filter((elm) => body === elm.body);
       filteredArrays = [...filteredArrays, filteredBybody];
     }
     if (make !== "Any Make") {
-      const filteredBymake = [...allCars].filter((elm) => make === elm.make);
+      const filteredBymake = state.cars.filter((elm) => make === elm.brand);
       filteredArrays = [...filteredArrays, filteredBymake];
     }
     if (model !== "Any Model") {
-      const filteredBymodel = [...allCars].filter((elm) => model === elm.model);
+      const filteredBymodel = state.cars.filter((elm) => model === elm.model);
       filteredArrays = [...filteredArrays, filteredBymodel];
     }
     if (fuel !== "Any Fuel") {
-      const filteredByfuel = [...allCars].filter(
+      const filteredByfuel = state.cars.filter(
         (elm) => fuel === elm.fuelType
       );
       filteredArrays = [...filteredArrays, filteredByfuel];
     }
     if (transmission !== "Any Transmission") {
-      const filteredByTransmission = [...allCars].filter(
+      const filteredByTransmission = state.cars.filter(
         (elm) => transmission === elm.transmission
       );
       filteredArrays = [...filteredArrays, filteredByTransmission];
     }
     if (location !== "Any Location") {
-      const filteredBylocation = [...allCars].filter(
+      const filteredBylocation = state.cars.filter(
         (elm) => location === elm.location
       );
       filteredArrays = [...filteredArrays, filteredBylocation];
     }
     if (door !== "Any Door") {
-      const filteredBydoor = [...allCars].filter(
+      const filteredBydoor = state.cars.filter(
         (elm) => parseInt(door.match(/\d+/)[0], 10) === elm.door
       );
       filteredArrays = [...filteredArrays, filteredBydoor];
     }
     if (cylinder !== "Any Cylinder") {
-      const filteredBycylinder = [...allCars].filter(
+      const filteredBycylinder = state.cars.filter(
         (elm) => parseInt(cylinder.match(/\d+/)[0], 10) === elm.cylinder
       );
       filteredArrays = [...filteredArrays, filteredBycylinder];
     }
     if (color !== "Any Color") {
-      const filteredBycolor = [...allCars].filter((elm) => color === elm.color);
+      const filteredBycolor = state.cars.filter((elm) => color === elm.color);
       filteredArrays = [...filteredArrays, filteredBycolor];
     }
 
-    const filteredByPrice = [...allCars].filter(
+    const filteredByPrice = state.cars.filter(
       (elm) => elm.price >= price[0] && elm.price <= price[1]
     );
     filteredArrays = [...filteredArrays, filteredByPrice];
-    const filteredBykm = [...allCars].filter(
+    const filteredBykm = state.cars.filter(
       (elm) => elm.km >= km[0] && elm.km <= km[1]
     );
     filteredArrays = [...filteredArrays, filteredBykm];
-    const filteredByyear = [...allCars].filter(
+    const filteredByyear = state.cars.filter(
       (elm) => elm.year >= year[0] && elm.year <= year[1]
     );
     filteredArrays = [...filteredArrays, filteredByyear];
 
-    const commonItems = [...allCars].filter((item) =>
-      filteredArrays.every((array) => array.includes(item))
-    );
-    dispatch({ type: "SET_FILTERED", payload: commonItems });
+   
+    dispatch({ type: "SET_FILTERED", payload: filteredArrays });
   }, [
     price,
     km,
@@ -166,6 +199,27 @@ export default function Cars3() {
   ]);
 
   useEffect(() => {
+    const fetchCars = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(
+          `https://develop.sayarti.nl/api/v1/en/cars?page=${state.currentPage}`
+        );
+        dispatch({ type: "SET_CARS", payload: response.data });
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCars();
+  }, [state.currentPage]);
+useEffect(() => {
+    allProps.setItemPerPage(12); // Set initial items per page once
+}, []);
+  // Remove the dispatch that resets currentPage in the sorting useEffect
+  useEffect(() => {
     if (sortingOption === "Price Ascending") {
       dispatch({
         type: "SET_SORTED",
@@ -179,9 +233,11 @@ export default function Cars3() {
     } else {
       dispatch({ type: "SET_SORTED", payload: filtered });
     }
-    dispatch({ type: "SET_CURRENT_PAGE", payload: 1 });
+    // Remove this line as it was causing the page to reset to 1
+    // dispatch({ type: "SET_CURRENT_PAGE", payload: 1 });
   }, [filtered, sortingOption]);
   const [isGrid, setIsGrid] = useState(true);
+  console.log(userId,"useee")
   return (
     <>
       <section className="listing-grid tf-section3">
@@ -217,7 +273,7 @@ export default function Cars3() {
                           <DropdownSelect
                             selectedValue={make}
                             onChange={allProps.setMake}
-                            options={["Any Make", "Audi", "Dongfeng", "BMW"]}
+                            options={["Any Make", "Audi", "Dongfeng", "BMW","Ford"]}
                           />
                         </div>
                       </div>
@@ -455,10 +511,7 @@ export default function Cars3() {
                             } `}
                           >
                             {sorted
-                              .slice(
-                                (currentPage - 1) * itemPerPage,
-                                currentPage * itemPerPage
-                              )
+                             
                               .map((car, i) => (
                                 <div
                                   key={i}
@@ -547,7 +600,7 @@ export default function Cars3() {
                                       <img
                                         className="lazyload"
                                         alt="image"
-                                        src={car.imgSrc}
+                                        src={car.feature_image}
                                         width={450}
                                         height={338}
                                       />
@@ -571,7 +624,7 @@ export default function Cars3() {
                                         <div className="icons flex-three">
                                           <i className="icon-autodeal-km1" />
                                           <span>
-                                            {car.km.toLocaleString()} kms
+                                            {car?.speed?.toLocaleString() || '0'} kms
                                           </span>
                                         </div>
                                         <div className="icons flex-three">
@@ -600,12 +653,12 @@ export default function Cars3() {
                                           <img
                                             className="lazyload"
                                             alt="image"
-                                            src={car.authorImage}
+                                            src={car.vendor.photo}
                                             width={120}
                                             height={120}
                                           />
                                           <span className="font text-color-2 fw-5">
-                                            {car.authorName}
+                                            {car.vendor.username}
                                           </span>
                                         </div>
                                         <Link
@@ -648,7 +701,8 @@ export default function Cars3() {
                           <Pagination
                             currentPage={currentPage}
                             setPage={(value) => allProps.setCurrentPage(value)}
-                            itemLength={sorted.length}
+                            itemLength={state.totalItems
+                            }
                             itemPerPage={itemPerPage}
                           />
                         </ul>
